@@ -91,6 +91,7 @@ export default function Login() {
 						onChange={(text: any) => setUsername(text.target.value)}
 					/>
 					<StyledInput
+						type="password"
 						placeholder="Senha"
 						value={password}
 						onChange={(text: any) => setPassword(text.target.value)}
@@ -109,6 +110,7 @@ export default function Login() {
 						onChange={(text: any) => setUsername(text.target.value)}
 					/>
 					<StyledInput
+						type="password"
 						placeholder="Senha"
 						value={password}
 						onChange={(text: any) => setPassword(text.target.value)}
