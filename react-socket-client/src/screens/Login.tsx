@@ -34,7 +34,7 @@ export default function Login() {
 			firebaseLogin(username, password)
 				.then((user) => {
 					dispatch(setUserInfo(user.user)) // salva user no redux
-					alert("logado com sucesso!")
+					console.log("logado com sucesso!")
 				})
 				.catch((error) => {
 					error.code === "auth/user-not-found" &&
@@ -54,7 +54,7 @@ export default function Login() {
 			firebaseSignUp(username, password)
 				.then((user) => {
 					dispatch(setUserInfo(user.user)) // salva user no redux
-					alert("cadastrado com sucesso!")
+					console.log("cadastrado com sucesso!")
 				})
 				.catch((error) => {
 					error.code === "auth/email-already-in-use" &&

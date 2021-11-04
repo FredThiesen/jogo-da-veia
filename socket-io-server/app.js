@@ -5,6 +5,15 @@ const io = require("socket.io")(3000, {
 		origin: ["http://127.0.0.1:6969", "https://admin.socket.io"],
 	},
 })
+//create room adapter
+// const adapter = new io.adapter.rooms.Redis({
+// 	host: "	redis",
+// 	port: 6379,
+// 	db: 0,
+// 	password: "",
+// })
+
+//testar
 
 io.on("connection", (socket) => {
 	console.log(socket.id)
@@ -12,6 +21,17 @@ io.on("connection", (socket) => {
 	socket.on("cellClick", (data) => {
 		console.log(data)
 		io.emit("cellClick", data)
+	})
+	socket.on("join", (data) => {
+		socket.join(data)
+		console.log("conectando user à sala: ", data.room)
+	})
+	//emit all rooms
+	socket.on("getRooms", () => {
+		io.emit("getRooms", io.sockets.adapter.rooms) // não está retornando as salas
+	})
+	socket.on("teste", () => {
+		io.emit("testeRes", "testado")
 	})
 })
 
@@ -24,18 +44,8 @@ io.on("disconnect", () => {
 	console.log("disconnected")
 })
 
-// io.on("connection", (socket) => {
-// 	console.log("connected")
-// 	socket.on("chat", (data) => {
-// 		io.sockets.emit("chat", data)
-// 	})
+//create rooms for each pair of users
 
-//create socket rooms for each pair of clients
-// io.on("connection", (socket) => {
-// 	console.log("connected")
-// 	socket.on("chat", (data) => {
-// 		io.sockets.emit("chat", data)
-// 	})
-instrument(io, {
-	auth: false,
-})
+// instrument(io, {
+// 	auth: false,
+// })

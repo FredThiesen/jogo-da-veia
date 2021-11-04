@@ -10,7 +10,7 @@ export const GameBoard = styled.div`
 	justify-content: center;
 	width: 400px;
 	height: 400px;
-	background-color: #f5f5f5;
+	background-color: transparent;
 `
 export const BoardRow = styled.div`
 	display: flex;

@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo } from "react"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { io } from "socket.io-client"
 import { setUserInfo } from "../redux/actions/userActions"
 import { BoardCell, BoardRow, GameBoard } from "../styles/BoardStyles"
 import { Button } from "../styles/Styles"
 
 const Game = React.memo(() => {
+	const user = useSelector((state: any) => state.user.email.split("@")[0])
 	const dispatch = useDispatch()
 	const socket = io("http://127.0.0.1:3000")
 
@@ -14,26 +15,49 @@ const Game = React.memo(() => {
 		socket.emit("cellClick", cell)
 	}
 	const isYourTurn = false
+	//function that capitalizes first letter of string
+	const capitalize = (s: string) => {
+		if (typeof s !== "string") return ""
+		return s.charAt(0).toUpperCase() + s.slice(1)
+	}
 
 	useEffect(() => {
 		console.log("1 render")
 		socket.on("connect", () => {
-			alert(`conectado com id: ${socket.id}`)
+			console.log(`conectado com id: ${socket.id}`)
 		})
+		//connect user to room
+
 		// socket event listener
 		socket.on("message", (message: string) => {
 			alert(message)
 		})
 		//socket disconnect listener
-		socket.on("disconnect", () => {
+		socket.on("disconnect", (reason) => {
+			if (reason === "io server disconnect") {
+				// the disconnection was initiated by the server, you need to reconnect manually
+				socket.connect()
+			}
 			dispatch(setUserInfo(null))
-			alert("desconectado")
+			console.log("desconectado")
+		})
+		//receive all rooms
+		socket.on("getRooms", (rooms) => {
+			console.log(rooms)
+		})
+		socket.on("testeRes", (res) => {
+			console.log(res)
 		})
 		return () => {}
-	}, [socket])
+	}, [])
 	return (
 		<>
-			{/* tic tac toe board */}
+			Bem vindo, {capitalize(user)}!{/* tic tac toe board */}
+			<Button onClick={() => socket.emit("join", capitalize(user.email))}>
+				Criar sala
+			</Button>
+			<Button onClick={() => socket.emit("getRooms")}>Ver Salas</Button>
+			<Button onClick={() => socket.emit("teste")}>teste</Button>
 			<GameBoard>
 				<BoardRow>
 					<BoardCell
@@ -97,7 +121,6 @@ const Game = React.memo(() => {
 				</BoardRow>
 			</GameBoard>
 			<div>{/* status */}</div>
-
 			<Button onClick={() => dispatch(setUserInfo(null))}> Sair </Button>
 		</>
 	)
