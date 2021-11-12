@@ -28,12 +28,18 @@ export default function Login() {
 	const [password, setPassword] = useState<string>("")
 	const [loginState, setLoginState] = useState<boolean>(true)
 
+	const capitalize = (s: string | null) => {
+		if (s) return s[0].toUpperCase() + s.slice(1)
+	}
+
 	const handleLogin = () => {
 		if (username.length > 0 && password.length > 0) {
 			//firebase login
 			firebaseLogin(username, password)
 				.then((user) => {
-					dispatch(setUserInfo(user.user)) // salva user no redux
+					dispatch(
+						setUserInfo(capitalize(user.user.email!.split("@")[0]))
+					) // salva user no redux
 					console.log("logado com sucesso!")
 				})
 				.catch((error) => {

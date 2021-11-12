@@ -35,7 +35,7 @@ export const BoardCell = styled.div<any>`
 	background-position: center;
 
 	&:hover {
-		background-color: #666;
+		background-color: #aaa;
 		transition: 200ms ease-in-out;
 	}
 	//conditionaly render an x or o
@@ -48,5 +48,7 @@ export const BoardCell = styled.div<any>`
 			? `
         background-image: url(${O});
     `
-			: ``}
+			: props === null
+			? ``
+			: null}
 `
