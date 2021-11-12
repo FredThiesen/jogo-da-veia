@@ -82,6 +82,8 @@ export const SideBar = styled.div`
 	justify-content: center;
 	height: 90vh;
 	width: 20vw;
+	padding-left: 15px;
+	padding-right: 15px;
 `
 export const MiddleBar = styled.div`
 	display: flex;
@@ -132,4 +134,9 @@ export const OnlineFlag = styled.span`
 	font-size: 2em;
 	margin-right: 3px;
 	margin-top: 1px;
+`
+export const Label = styled.label`
+	font-size: 1.2em;
+	color: #141c98;
+	align-self: flex-start;
 `

@@ -17,6 +17,7 @@ const io = require("socket.io")(3000, {
 //
 let rooms = []
 let users = []
+
 io.on("connection", (socket) => {
 	//registrar novo usuário
 	socket.on("registerUser", (payload) => {
@@ -27,27 +28,25 @@ io.on("connection", (socket) => {
 	// inicializar salas e users
 	socket.on("getInfoOnConnect", () => {
 		io.emit("getInfoOnConnectRes", { rooms, users })
-		console.log("mandando infos: ", users)
+		console.log("mandando infos: ", users, rooms)
 	})
 	// criar sala
 	socket.on("createRoom", (roomName) => {
+		console.log("create room chamado")
 		if (!rooms.includes(roomName)) {
 			rooms.push(roomName)
 			socket.join(roomName)
-			io.emit("joinRoomRes", roomName)
+			socket.emit("joinRoomRes", roomName)
 			io.emit("roomsUpdate", rooms)
 		}
 	})
+
 	// entrar na sala
 	socket.on("joinRoom", (roomName) => {
+		console.log("join room chamado")
 		if (rooms.includes(roomName)) {
 			socket.join(roomName)
-			io.emit("joinRoomRes", roomName)
-		} else {
-			socket.emit("joinRoomRes", {
-				success: false,
-				message: "Room does not exist",
-			})
+			socket.emit("joinRoomRes", roomName)
 		}
 	})
 	// sair da sala
@@ -55,6 +54,9 @@ io.on("connection", (socket) => {
 		if (rooms.includes(roomName)) {
 			socket.leave(roomName)
 			socket.emit("leaveRoomRes", "Left room")
+			//delete this room
+			rooms = rooms.filter((room) => room !== roomName)
+			io.emit("roomsUpdate", rooms)
 		}
 	})
 	//
@@ -62,7 +64,9 @@ io.on("connection", (socket) => {
 	socket.on("move", (data) => {
 		io.broadcast
 			.to(data.room)
-			.emit("moveRes", { message: `usuário ${socket.id}` })
+			.emit("moveRes", {
+				message: `usuário ${socket.id} moveu ${data.cell}`,
+			})
 	})
 	socket.on("disconnect", () => {
 		users = users.filter((user) => user.userId !== socket.id)
@@ -78,7 +82,14 @@ io.on("connection", (socket) => {
 // socket.on("disconnect", () => {
 // 	console.log("user disconnected")
 // })
-
+//delete room when empty
+// if (rooms.length > 0) {
+// 	rooms.forEach((room) => {
+// 		if (io.sockets.adapter.rooms[room].length === 0) {
+// 			rooms = rooms.filter((room) => room !== room)
+// 		}
+// 	})
+// }
 // remove user from users array when disconnected
 
 //create rooms for each pair of users

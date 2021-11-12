@@ -9,6 +9,7 @@ import {
 	Content,
 	Header,
 	InfoContainer,
+	Label,
 	MiddleBar,
 	OnlineFlag,
 	RoomListContainer,
@@ -18,6 +19,7 @@ import {
 	WelcomeLabel,
 } from "../styles/Styles"
 import toast, { Toaster } from "react-hot-toast"
+import uuid from "react-uuid"
 interface User {
 	userName: string
 	userId: string
@@ -38,10 +40,13 @@ const Game = React.memo(() => {
 		setIsYourTurn(false)
 	}
 	const handleCreateRoom = () => {
-		!gameRoom && socket.emit("createRoom", `Sala de ${user}`)
+		socket.emit("createRoom", `Sala de ${user}`)
 	}
 	const handleJoinRoom = (room: string) => {
-		!gameRoom && socket.emit("joinRoom", room)
+		console.log("gameRoom: ", gameRoom)
+		if (!gameRoom) {
+			socket.emit("joinRoom", room)
+		}
 	}
 	const handleLogout = () => {
 		socket.disconnect()
@@ -74,11 +79,16 @@ const Game = React.memo(() => {
 			setUserList(users)
 		})
 		socket.on("roomsUpdate", (rooms: string[]) => {
-			notify(`Uma sala foi criada!`)
 			setRoomList(rooms)
+			if (gameRoom) {
+				if (!rooms.includes(gameRoom)) {
+					setGameRoom("")
+				}
+			}
 		})
 		socket.on("joinRoomRes", (room: string) => {
 			console.log("joinRoomRes", room)
+			notify(`Entrou na ${room}`)
 			setGameRoom(room)
 		})
 
@@ -88,6 +98,7 @@ const Game = React.memo(() => {
 				// the disconnection was initiated by the server, you need to reconnect manually
 				socket.connect()
 			} else {
+				if (gameRoom) socket.emit("leaveRoom", gameRoom)
 				dispatch(setUserInfo(null))
 				console.log("desconectado")
 				socket.disconnect()
@@ -107,10 +118,10 @@ const Game = React.memo(() => {
 						<WelcomeLabel>
 							Bem vindo, {user}!{/* tic tac toe board */}
 						</WelcomeLabel>
-						<p>Usuários conectados:</p>
+						<Label>Usuários conectados:</Label>
 						<UsersContainer>
 							{userList.map((user: User) => (
-								<UserContainer>
+								<UserContainer key={uuid()}>
 									<OnlineFlag>•</OnlineFlag>
 									{user.userName}
 								</UserContainer>
@@ -118,10 +129,11 @@ const Game = React.memo(() => {
 						</UsersContainer>
 					</InfoContainer>
 					<RoomListContainer>
-						<p>Salas:</p>
+						<Label>Salas:</Label>
 						{roomList.length > 0 ? (
 							roomList.map((room) => (
 								<Button
+									key={uuid()}
 									onClick={() => handleJoinRoom(room)}
 									// key={Math.random() + Math.random()}
 								>
@@ -134,11 +146,6 @@ const Game = React.memo(() => {
 						{!gameRoom && (
 							<Button onClick={handleCreateRoom}>
 								Criar nova sala
-							</Button>
-						)}
-						{gameRoom && (
-							<Button onClick={handleLeaveRoom}>
-								Sair da {gameRoom}
 							</Button>
 						)}
 					</RoomListContainer>
@@ -224,6 +231,11 @@ const Game = React.memo(() => {
 							></BoardCell>
 						</BoardRow>
 					</GameBoard>
+					{gameRoom && (
+						<Button onClick={handleLeaveRoom}>
+							Sair da {gameRoom}
+						</Button>
+					)}
 				</MiddleBar>
 				<SideBar>
 					<Button onClick={handleLogout}> Sair </Button>
