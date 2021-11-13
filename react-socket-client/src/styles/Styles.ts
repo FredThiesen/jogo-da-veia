@@ -93,14 +93,6 @@ export const MiddleBar = styled.div`
 	height: 100vh;
 	width: 60vw;
 `
-export const RoomListContainer = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: start;
-	height: 60%;
-	width: 100%;
-`
 export const InfoContainer = styled.div`
 	display: flex;
 	flex-direction: column;
@@ -139,4 +131,47 @@ export const Label = styled.label`
 	font-size: 1.2em;
 	color: #141c98;
 	align-self: flex-start;
+`
+export const RoomListContainer = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: start;
+	overflow-y: auto;
+	height: 60%;
+	width: 100%;
+`
+export const RoomContainer = styled.div`
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	padding-top: 5px;
+	padding-bottom: 2px;
+	padding-left: 5px;
+	padding-right: 5px;
+	height: 10%;
+	width: 100%;
+	border-bottom: 1px solid #141c98;
+`
+export const RoomUsersLabel = styled.h1`
+	font-size: 0.8em;
+	text-align: center;
+	color: #141c98;
+`
+export const JoinRoomButton = styled.button`
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	margin-bottom: 8px;
+	padding-left: 4px;
+	padding-right: 4px;
+	height: 80%;
+
+	&:hover {
+		cursor: pointer;
+		background: #fff;
+		color: #141c98;
+		transition: 0.25s;
+		border: 1px solid #141c98;
+	}
 `

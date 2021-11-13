@@ -14,8 +14,14 @@ const io = require("socket.io")(3000, {
 // 	password: "",
 // })
 
-//
+// rooms= [
+// 	{
+// 		roomName: string,
+// 		users: ['socket.id1', 'socket.id2']
+// 	}
+//		 ]
 let rooms = []
+
 let users = []
 
 io.on("connection", (socket) => {
@@ -31,24 +37,41 @@ io.on("connection", (socket) => {
 		console.log("mandando infos: ", users, rooms)
 	})
 	// criar sala
-	socket.on("createRoom", (roomName) => {
+	socket.on("createRoom", (roomData) => {
 		console.log("create room chamado")
-		if (!rooms.includes(roomName)) {
-			rooms.push(roomName)
-			socket.join(roomName)
-			socket.emit("joinRoomRes", roomName)
+		if (!rooms.find((room) => room.roomName === roomData.roomName)) {
+			rooms.push({
+				roomName: roomData.roomName,
+				users: [...roomData.users, socket.id],
+			})
+			socket.join(roomData.roomName)
+			socket.emit("joinRoomRes", roomData.roomName)
 			io.emit("roomsUpdate", rooms)
 		}
 	})
 
 	// entrar na sala
-	socket.on("joinRoom", (roomName) => {
+	socket.on("joinRoom", (roomData) => {
+		//join room, adding user to room
+
 		console.log("join room chamado")
-		if (rooms.includes(roomName)) {
-			socket.join(roomName)
-			socket.emit("joinRoomRes", roomName)
+		if (rooms.find((room) => room.roomName === roomData.roomName)) {
+			rooms
+				.find((room) => room.roomName === roomData.roomName)
+				.users.push(socket.id)
+			socket.join(roomData.roomName)
+			socket.emit("joinRoomRes", roomData.roomName) //=> não está funcionando
+			io.emit("roomsUpdate", rooms)
 		}
+		console.log("new rooms (after joinRoom)", rooms)
 	})
+
+	// console.log("join room chamado")
+	// if (rooms.includes(roomName)) {
+	// 	socket.join(roomName)
+	// 	socket.emit("joinRoomRes", roomName)
+	// }
+
 	// sair da sala
 	socket.on("leaveRoom", (roomName) => {
 		if (rooms.includes(roomName)) {
@@ -62,17 +85,44 @@ io.on("connection", (socket) => {
 	//
 	// fazer jogada (manda jogada para sala informada no data)
 	socket.on("move", (data) => {
-		io.broadcast
-			.to(data.room)
-			.emit("moveRes", {
-				message: `usuário ${socket.id} moveu ${data.cell}`,
-			})
+		io.broadcast.to(data.room).emit("moveRes", {
+			message: `usuário ${socket.id} moveu ${data.cell}`,
+		})
 	})
 	socket.on("disconnect", () => {
 		users = users.filter((user) => user.userId !== socket.id)
-		io.emit("usersUpdate", users)
+		//checa se o user está em alguma sala
+		rooms.forEach((room) => {
+			if (room.users.includes(socket.id)) {
+				room.users = room.users.filter((user) => user !== socket.id)
+				//se não tiver ninguém mais na sala, deleta
+				if (room.users.length === 0) {
+					rooms = rooms.filter((room) => room !== room.roomName)
+				}
+				io.emit("roomsUpdate", rooms)
+			}
+		})
 	})
 })
+
+// io disconnect event listener
+io.on("disconnect", (socket) => {
+	console.log("disconnect")
+	users = users.filter((user) => user.userId !== socket.id)
+	//checa se o user está em alguma sala
+	rooms.forEach((room) => {
+		if (room.users.includes(socket.id)) {
+			room.users = room.users.filter((user) => user !== socket.id)
+			//se não tiver ninguém mais na sala, deleta
+			if (room.users.length === 0) {
+				rooms = rooms.filter((room) => room !== room.roomName)
+			}
+			io.emit("roomsUpdate", rooms)
+		}
+	})
+})
+
+// })
 
 // socket.on("chat", (data) => {
 // 	io.sockets.emit("chat", data)

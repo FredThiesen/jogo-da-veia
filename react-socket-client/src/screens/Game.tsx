@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { io } from "socket.io-client"
 import { setUserInfo } from "../redux/actions/userActions"
@@ -9,10 +9,13 @@ import {
 	Content,
 	Header,
 	InfoContainer,
+	JoinRoomButton,
 	Label,
 	MiddleBar,
 	OnlineFlag,
+	RoomContainer,
 	RoomListContainer,
+	RoomUsersLabel,
 	SideBar,
 	UserContainer,
 	UsersContainer,
@@ -24,11 +27,15 @@ interface User {
 	userName: string
 	userId: string
 }
+interface Room {
+	roomName: string
+	users: User[]
+}
 const Game = React.memo(() => {
 	const user = useSelector((state: any) => state.user)
 	const [isYourTurn, setIsYourTurn] = React.useState(false)
 	const [userList, setUserList] = useState<User[]>([])
-	const [roomList, setRoomList] = React.useState<string[]>([])
+	const [roomList, setRoomList] = React.useState<Room[]>([])
 	const [gameRoom, setGameRoom] = React.useState("")
 	const dispatch = useDispatch()
 	const socket = io("http://127.0.0.1:3000")
@@ -40,9 +47,9 @@ const Game = React.memo(() => {
 		setIsYourTurn(false)
 	}
 	const handleCreateRoom = () => {
-		socket.emit("createRoom", `Sala de ${user}`)
+		socket.emit("createRoom", { roomName: `Sala de ${user}`, users: [] })
 	}
-	const handleJoinRoom = (room: string) => {
+	const handleJoinRoom = (room: Room) => {
 		console.log("gameRoom: ", gameRoom)
 		if (!gameRoom) {
 			socket.emit("joinRoom", room)
@@ -71,20 +78,16 @@ const Game = React.memo(() => {
 		socket.emit("registerUser", { userName: user, userId: socket.id })
 		//connect user to room
 		socket.emit("getInfoOnConnect")
-		socket.on("getInfoOnConnectRes", (rooms: string[]) => {
+		socket.on("getInfoOnConnectRes", (data: { rooms: []; users: [] }) => {
 			console.log("inicializando array de salas")
-			setRoomList(rooms)
+			setRoomList(data.rooms)
+			setUserList(data.users)
 		})
 		socket.on("usersUpdate", (users: User[]) => {
 			setUserList(users)
 		})
-		socket.on("roomsUpdate", (rooms: string[]) => {
+		socket.on("roomsUpdate", (rooms: Room[]) => {
 			setRoomList(rooms)
-			if (gameRoom) {
-				if (!rooms.includes(gameRoom)) {
-					setGameRoom("")
-				}
-			}
 		})
 		socket.on("joinRoomRes", (room: string) => {
 			console.log("joinRoomRes", room)
@@ -132,21 +135,32 @@ const Game = React.memo(() => {
 						<Label>Salas:</Label>
 						{roomList.length > 0 ? (
 							roomList.map((room) => (
-								<Button
+								<RoomContainer
 									key={uuid()}
-									onClick={() => handleJoinRoom(room)}
 									// key={Math.random() + Math.random()}
 								>
-									{room}
-								</Button>
+									{room.roomName}
+									<RoomUsersLabel>
+										{room.users.length} / 2
+									</RoomUsersLabel>
+
+									{room.users.length < 2 ? (
+										<JoinRoomButton
+											onClick={() => handleJoinRoom(room)}
+										>
+											<RoomUsersLabel>
+												Entrar
+											</RoomUsersLabel>
+										</JoinRoomButton>
+									) : (
+										<RoomUsersLabel>
+											Sala cheia!
+										</RoomUsersLabel>
+									)}
+								</RoomContainer>
 							))
 						) : (
 							<p>Nenhuma sala ainda!</p>
-						)}
-						{!gameRoom && (
-							<Button onClick={handleCreateRoom}>
-								Criar nova sala
-							</Button>
 						)}
 					</RoomListContainer>
 				</SideBar>
@@ -234,6 +248,11 @@ const Game = React.memo(() => {
 					{gameRoom && (
 						<Button onClick={handleLeaveRoom}>
 							Sair da {gameRoom}
+						</Button>
+					)}
+					{!gameRoom && (
+						<Button onClick={handleCreateRoom}>
+							Criar nova sala
 						</Button>
 					)}
 				</MiddleBar>
