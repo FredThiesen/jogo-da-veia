@@ -67,6 +67,7 @@ export const Content = styled.div`
 	justify-content: center;
 	height: 90vh;
 	width: 100vw;
+	background: #f0f0f0;
 `
 export const WelcomeLabel = styled.h1`
 	font-size: 2em;
@@ -84,15 +85,9 @@ export const SideBar = styled.div`
 	width: 20vw;
 	padding-left: 15px;
 	padding-right: 15px;
+	padding: 15px;
 `
-export const MiddleBar = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	height: 100vh;
-	width: 60vw;
-`
+
 export const InfoContainer = styled.div`
 	display: flex;
 	flex-direction: column;
@@ -110,7 +105,10 @@ export const UsersContainer = styled.div`
 	width: 100%;
 	overflow-y: auto;
 	border: 1px solid #ccc;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px #ccc;
 	padding-left: 10px;
+	padding: 10px;
 `
 export const UserContainer = styled.div`
 	display: flex;
@@ -133,12 +131,16 @@ export const Label = styled.label`
 	align-self: flex-start;
 `
 export const RoomListContainer = styled.div`
+	padding: 10px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: start;
 	overflow-y: auto;
-	height: 60%;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+	box-shadow: 0px 0px 10px #ccc;
+	height: 50%;
 	width: 100%;
 `
 export const RoomContainer = styled.div`
@@ -166,6 +168,41 @@ export const JoinRoomButton = styled.button`
 	padding-left: 4px;
 	padding-right: 4px;
 	height: 80%;
+
+	&:hover {
+		cursor: pointer;
+		background: #fff;
+		color: #141c98;
+		transition: 0.25s;
+		border: 1px solid #141c98;
+	}
+`
+export const MiddleBar = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-evenly;
+	height: 100%;
+	width: 60vw;
+`
+export const GameLabel = styled.h1`
+	font-size: 1.5em;
+	text-align: center;
+	color: #141c98;
+	margin: 15px;
+`
+export const TurnLabel = styled.h1`
+	font-size: 1.5em;
+	text-align: center;
+	color: #141c98;
+	margin: 15px;
+`
+export const CreateRoomButton = styled.button`
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	padding: 8px;
+	margin-bottom: 8px;
+	width: 200px;
 
 	&:hover {
 		cursor: pointer;

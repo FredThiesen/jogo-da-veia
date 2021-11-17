@@ -11,6 +11,7 @@ import Game from "../screens/Game"
 import { ProtectedRoute } from "./ProtectedRoute"
 
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth"
+import { SocketContext, socket } from "../socket/socket"
 
 const auth = getAuth()
 
@@ -24,8 +25,11 @@ export const RouterComponent = () => {
 				<Route path="/login">
 					<Login />
 				</Route>
+
 				<ProtectedRoute path="/game">
-					<Game />
+					<SocketContext.Provider value={socket}>
+						<Game />
+					</SocketContext.Provider>
 				</ProtectedRoute>
 			</Switch>
 		</Router>

@@ -7,6 +7,8 @@ import {
 	Body,
 	Button,
 	Content,
+	CreateRoomButton,
+	GameLabel,
 	Header,
 	InfoContainer,
 	JoinRoomButton,
@@ -17,12 +19,14 @@ import {
 	RoomListContainer,
 	RoomUsersLabel,
 	SideBar,
+	TurnLabel,
 	UserContainer,
 	UsersContainer,
 	WelcomeLabel,
 } from "../styles/Styles"
 import toast, { Toaster } from "react-hot-toast"
 import uuid from "react-uuid"
+import { SocketContext } from "../socket/socket"
 interface User {
 	userName: string
 	userId: string
@@ -32,36 +36,57 @@ interface Room {
 	users: User[]
 }
 const Game = React.memo(() => {
+	window.addEventListener("beforeunload", () => {
+		console.log("chamando cleanup 1 vez")
+		socket.emit("cleanUp", socketId)
+	})
 	const user = useSelector((state: any) => state.user)
 	const [isYourTurn, setIsYourTurn] = React.useState(false)
 	const [userList, setUserList] = useState<User[]>([])
 	const [roomList, setRoomList] = React.useState<Room[]>([])
 	const [gameRoom, setGameRoom] = React.useState("")
+	const [socketId, setSocketId] = React.useState("")
+	const [opponent, setOpponent] = React.useState("")
 	const dispatch = useDispatch()
-	const socket = io("http://127.0.0.1:3000")
+	const socket = React.useContext(SocketContext)
 	const notify = (message: string) => toast(message)
-
 	const handleCellClick = (cell: string) => {
 		console.log(cell)
 		socket.emit("move", { cell: cell, user: user, room: gameRoom })
 		setIsYourTurn(false)
 	}
 	const handleCreateRoom = () => {
-		socket.emit("createRoom", { roomName: `Sala de ${user}`, users: [] })
+		socket.emit(
+			"createRoom",
+			socketId,
+			{ roomName: `Sala de ${user}`, users: [] },
+			(response: Room) => joinedRoomCallback(response)
+		)
 	}
 	const handleJoinRoom = (room: Room) => {
 		console.log("gameRoom: ", gameRoom)
 		if (!gameRoom) {
-			socket.emit("joinRoom", room)
+			socket.emit("joinRoom", socketId, room, (response: Room) =>
+				joinedRoomCallback(response)
+			)
+		} else {
+			notify("Você já está em uma sala!")
 		}
 	}
 	const handleLogout = () => {
-		socket.disconnect()
+		socket.emit("cleanUp", socketId)
 		dispatch(setUserInfo(null))
+		setSocketId("")
+		socket.disconnect()
 	}
 	const handleLeaveRoom = () => {
-		socket.emit("leaveRoom", gameRoom)
+		socket.emit("leaveRoom", socketId, gameRoom)
 		setGameRoom("")
+	}
+
+	const joinedRoomCallback = (room: Room) => {
+		setGameRoom(room.roomName)
+		notify(`Entrou na ${room.roomName}`)
 	}
 	//function that capitalizes first letter of string
 
@@ -71,11 +96,16 @@ const Game = React.memo(() => {
 	// }, [roomList])
 
 	useEffect(() => {
+		socket.connect()
 		console.log("1 render")
 		socket.on("connect", () => {
 			notify(`conectado com id: ${socket.id}`)
+			console.log(`conectado com id: ${socket.id}`)
 		})
+		notify(`conectado com id: ${socket.id}`)
+		setSocketId(socket.id)
 		socket.emit("registerUser", { userName: user, userId: socket.id })
+
 		//connect user to room
 		socket.emit("getInfoOnConnect")
 		socket.on("getInfoOnConnectRes", (data: { rooms: []; users: [] }) => {
@@ -89,26 +119,34 @@ const Game = React.memo(() => {
 		socket.on("roomsUpdate", (rooms: Room[]) => {
 			setRoomList(rooms)
 		})
-		socket.on("joinRoomRes", (room: string) => {
-			console.log("joinRoomRes", room)
-			notify(`Entrou na ${room}`)
-			setGameRoom(room)
+		socket.on("testeRes", (res: string) => {
+			notify(res)
+			console.log("testeRes: ", res)
+		})
+		socket.on("joinRoomRes", (room: string) => {})
+		socket.on("leaveRoomRes", () => {
+			notify(`Saiu da sala`)
+			setGameRoom("")
+		})
+		socket.on("moveRes", (data: { cell: string; user: User }) => {
+			console.log("moveRes", data)
+			if (!data.user.userName === user) {
+				setIsYourTurn(true)
+			} else {
+				setIsYourTurn(false)
+			}
 		})
 
 		//socket disconnect listener
 		socket.on("disconnect", (reason) => {
-			if (reason === "io server disconnect") {
-				// the disconnection was initiated by the server, you need to reconnect manually
-				socket.connect()
-			} else {
-				if (gameRoom) socket.emit("leaveRoom", gameRoom)
-				dispatch(setUserInfo(null))
-				console.log("desconectado")
-				socket.disconnect()
-			}
+			if (gameRoom) socket.emit("leaveRoom", gameRoom)
+			dispatch(setUserInfo(null))
+			console.log("desconectado")
+			socket.disconnect()
 		})
 		return () => {
-			socket.disconnect()
+			// socket.emit("cleanUp")
+			// socket.disconnect()
 		}
 	}, [])
 	return (
@@ -131,8 +169,8 @@ const Game = React.memo(() => {
 							))}
 						</UsersContainer>
 					</InfoContainer>
+					<Label>Salas:</Label>
 					<RoomListContainer>
-						<Label>Salas:</Label>
 						{roomList.length > 0 ? (
 							roomList.map((room) => (
 								<RoomContainer
@@ -165,95 +203,113 @@ const Game = React.memo(() => {
 					</RoomListContainer>
 				</SideBar>
 				<MiddleBar>
-					<GameBoard>
-						<BoardRow>
-							<BoardCell
-								props={"X"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("11")
-										: null
-								}
-							></BoardCell>
-							<BoardCell
-								props={"O"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("12")
-										: null
-								}
-							></BoardCell>
-							<BoardCell
-								props={"X"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("13")
-										: null
-								}
-							></BoardCell>
-						</BoardRow>
-						<BoardRow>
-							<BoardCell
-								props={"X"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("21")
-										: null
-								}
-							></BoardCell>
-							<BoardCell
-								props={"X"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("22")
-										: null
-								}
-							></BoardCell>
-							<BoardCell
-								props={"X"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("23")
-										: null
-								}
-							></BoardCell>
-						</BoardRow>
-						<BoardRow>
-							<BoardCell
-								props={"X"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("31")
-										: null
-								}
-							></BoardCell>
-							<BoardCell
-								props={"X"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("32")
-										: null
-								}
-							></BoardCell>
-							<BoardCell
-								props={"X"}
-								onClick={
-									isYourTurn
-										? () => handleCellClick("33")
-										: null
-								}
-							></BoardCell>
-						</BoardRow>
-					</GameBoard>
+					{opponent && (
+						<>
+							<GameLabel>Jogando contra: {opponent} </GameLabel>
+							{isYourTurn && <TurnLabel>Seu turno!</TurnLabel>}
+							{!isYourTurn && (
+								<TurnLabel>
+									{opponent} está fazendo sua jogada...
+								</TurnLabel>
+							)}
+							<GameBoard>
+								<BoardRow>
+									<BoardCell
+										props={"X"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("11")
+												: null
+										}
+									></BoardCell>
+									<BoardCell
+										props={"O"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("12")
+												: null
+										}
+									></BoardCell>
+									<BoardCell
+										props={"X"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("13")
+												: null
+										}
+									></BoardCell>
+								</BoardRow>
+								<BoardRow>
+									<BoardCell
+										props={"X"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("21")
+												: null
+										}
+									></BoardCell>
+									<BoardCell
+										props={"X"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("22")
+												: null
+										}
+									></BoardCell>
+									<BoardCell
+										props={"X"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("23")
+												: null
+										}
+									></BoardCell>
+								</BoardRow>
+								<BoardRow>
+									<BoardCell
+										props={"X"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("31")
+												: null
+										}
+									></BoardCell>
+									<BoardCell
+										props={"X"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("32")
+												: null
+										}
+									></BoardCell>
+									<BoardCell
+										props={"X"}
+										onClick={
+											isYourTurn
+												? () => handleCellClick("33")
+												: null
+										}
+									></BoardCell>
+								</BoardRow>
+							</GameBoard>
+						</>
+					)}
+					{!opponent && (
+						<>
+							<GameLabel>
+								Crie ou Selecione uma sala para jogar!
+							</GameLabel>
+						</>
+					)}
 					{gameRoom && (
-						<Button onClick={handleLeaveRoom}>
+						<CreateRoomButton onClick={handleLeaveRoom}>
 							Sair da {gameRoom}
-						</Button>
+						</CreateRoomButton>
 					)}
 					{!gameRoom && (
-						<Button onClick={handleCreateRoom}>
+						<CreateRoomButton onClick={handleCreateRoom}>
 							Criar nova sala
-						</Button>
+						</CreateRoomButton>
 					)}
 				</MiddleBar>
 				<SideBar>
