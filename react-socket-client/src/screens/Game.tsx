@@ -146,7 +146,8 @@ const Game = React.memo(() => {
 		})
 		return () => {
 			// socket.emit("cleanUp")
-			// socket.disconnect()
+			socket.disconnect()
+			socket.removeAllListeners()
 		}
 	}, [])
 	return (
