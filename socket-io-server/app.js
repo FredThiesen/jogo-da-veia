@@ -1,10 +1,40 @@
-const { instrument } = require("@socket.io/admin-ui")
+const http = require("http")
+const express = require("express")
 
-const io = require("socket.io")(process.env.PORT || 3000, {
+const app = express()
+const httpServer = http.createServer(app)
+
+// const io = require("socket.io")(process.env.PORT || 3000, {
+const io = require("socket.io")(httpServer, {
 	cors: {
-		origin: ["http://127.0.0.1:6969", "https://admin.socket.io"],
+		origin: [
+			"https://jogo-da-veia-client.herokuapp.com",
+			"http://127.0.0.1:6969",
+		],
+		methods: ["GET", "POST"],
+		allowedHeaders: ["my-custom-header"],
+		credentials: true,
 	},
 })
+
+httpServer.listen(process.env.PORT || 3000, () => {
+	console.log("Server running")
+})
+// cors: {
+// 	origin: "*",
+// 	methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+// 	preflightContinue: false,
+// 	optionsSuccessStatus: 204,
+
+// 	// [
+// 	// 	"http://jogo-da-veia-client.herokuapp.com",
+// 	// 	"jogo-da-veia-client.herokuapp.com",
+// 	// 	"https://jogo-da-veia-client.herokuapp.com",
+// 	// 	"http://127.0.0.1:6969",
+// 	// ],
+// },
+
+// })
 
 //create room adapter
 // const adapter = new io.adapter.rooms.Redis({

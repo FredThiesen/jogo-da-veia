@@ -102,7 +102,7 @@ const Game = React.memo(() => {
 			notify(`conectado com id: ${socket.id}`)
 			console.log(`conectado com id: ${socket.id}`)
 		})
-		notify(`conectado com id: ${socket.id}`)
+
 		setSocketId(socket.id)
 		socket.emit("registerUser", { userName: user, userId: socket.id })
 
