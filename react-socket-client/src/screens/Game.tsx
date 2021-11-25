@@ -203,6 +203,11 @@ const Game = () => {
 	// }, [roomList])
 
 	useEffect(() => {
+		console.log("setando socketId com ", socket.id)
+		socket.id && setSocketId(socket.id)
+	}, [socket.id])
+
+	useEffect(() => {
 		console.log("gameroom no UseEffect", gameRoom)
 		gameRoom && setMyGameRoom(gameRoom.roomName)
 	}, [gameRoom])
@@ -231,7 +236,6 @@ const Game = () => {
 			notify(`conectado com id: ${socket.id}`)
 		})
 
-		setSocketId(socket.id)
 		socket.emit("registerUser", { userName: user, userId: socket.id })
 
 		//connect user to room
@@ -284,6 +288,7 @@ const Game = () => {
 		socket.on("userLeft", () => {
 			notify("O seu oponente saiu")
 			setOpponent(null)
+			dispatch(setGameBoard([0, 0, 0, 0, 0, 0, 0, 0, 0]))
 		})
 		return () => {
 			// socket.emit("cleanUp")
