@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react"
+import toast, { Toaster } from "react-hot-toast"
 import { useDispatch, useSelector } from "react-redux"
 import { Redirect } from "react-router"
-import firebaseLogin from "../functions/firebaseLogin"
-import { firebaseSignUp } from "../functions/firebaseSignUp"
+import firebaseLogin from "../firebaseFunctions/firebaseLogin"
+import { firebaseSignUp } from "../firebaseFunctions/firebaseSignUp"
 import { setUserInfo } from "../redux/actions/userActions"
 
 import {
@@ -16,6 +17,7 @@ import {
 import tictactoe from "./../assets/images/tictactoe.png"
 
 export default function Login() {
+	const notify = (message: string) => toast(message)
 	const user = useSelector((state: any) => state.user)
 	useEffect(() => {
 		if (user) {
@@ -59,8 +61,9 @@ export default function Login() {
 			//firebase signUp
 			firebaseSignUp(username, password)
 				.then((user) => {
-					dispatch(setUserInfo(user.user)) // salva user no redux
+					notify("Cadastrado com sucesso! Faça seu login.")
 					console.log("cadastrado com sucesso!")
+					setLoginState(true)
 				})
 				.catch((error) => {
 					error.code === "auth/email-already-in-use" &&
@@ -84,6 +87,7 @@ export default function Login() {
 
 	return (
 		<>
+			<Toaster />
 			{/* //login form */}
 			<img src={tictactoe} alt="logo" />
 			<Title>Jogo da Véia</Title>

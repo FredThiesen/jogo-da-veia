@@ -1,4 +1,4 @@
-import styled from "styled-components"
+import styled, { keyframes } from "styled-components"
 
 export const StyledInput = styled.input`
 	border: 1px solid #ccc;
@@ -70,7 +70,7 @@ export const Content = styled.div`
 	background: #f0f0f0;
 `
 export const WelcomeLabel = styled.h1`
-	font-size: 2em;
+	font-size: 2rem;
 	text-align: center;
 	color: #141c98;
 	margin: 15px;
@@ -211,4 +211,38 @@ export const CreateRoomButton = styled.button`
 		transition: 0.25s;
 		border: 1px solid #141c98;
 	}
+`
+
+const Animation = keyframes`
+
+  0%, 100%{
+    transform: scale(0.2);
+    background-color: #30FFB7;
+  }
+  40%{
+    transform: scale(1);
+    background-color: #07DEFF;
+  }
+  50%{
+    transform: scale(1);
+    background-color: #0761FF;
+  }
+}
+`
+export const LoadingDiv = styled.div`
+	height: 40px;
+	width: 40px;
+	border-radius: 50%;
+	/* transform: scale(0); */
+	background-color: red;
+	animation: ${Animation} 2.5s ease-in-out infinite;
+	display: inline-block;
+	margin: 0.5rem;
+`
+export const Row = styled.div`
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
 `

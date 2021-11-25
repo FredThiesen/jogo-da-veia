@@ -40,15 +40,13 @@ export const BoardCell = styled.div<any>`
 	}
 	//conditionaly render an x or o
 	${({ props }: any) =>
-		props === "X"
+		props === 1
 			? `
         background-image: url(${X});
     `
-			: props === "O"
+			: props === -1
 			? `
         background-image: url(${O});
     `
-			: props === null
-			? ``
 			: null}
 `

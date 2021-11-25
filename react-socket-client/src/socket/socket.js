@@ -3,7 +3,7 @@ import io from "socket.io-client"
 import { SOCKET } from "../config"
 
 export const socket = io(SOCKET.url, {
-	withCredentials: true,
+	withCredentials: false,
 	extraHeaders: {
 		"my-custom-header": "abcd",
 	},

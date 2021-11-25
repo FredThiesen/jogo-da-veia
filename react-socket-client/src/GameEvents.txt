@@ -1,0 +1,21 @@
+socket.on("yourTurn", () => {
+			setIsYourTurn(true)
+		})
+		socket.on("opponentLeft", () => {
+			setGameRoom("")
+			setOpponent(null)
+			notify("O seu oponente saiu da sala!")
+		})
+		socket.on("opponentMove", (cell: string) => {
+			console.log("opponentMove", cell)
+			setIsYourTurn(true)
+		})
+		socket.on("win", (winner: string) => {
+			notify(`${winner} venceu!`)
+			setGameRoom("")
+			setOpponent(null)
+		})
+		socket.on("gameCleanUp", () => {
+			setGameRoom("")
+			setOpponent(null)
+		})

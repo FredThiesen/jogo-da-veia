@@ -13,7 +13,7 @@ const io = require("socket.io")(httpServer, {
 		],
 		methods: ["GET", "POST"],
 		allowedHeaders: ["my-custom-header"],
-		credentials: true,
+		credentials: false,
 	},
 })
 
@@ -61,7 +61,7 @@ let rooms = []
 //       ]
 let users = []
 
-// evitar que um socket novo seja criado a cada evento
+// evitar que um socket novo seja criado a cada evento - DONE
 
 const findRoom = (roomName) => {
 	return rooms.find((room) => room.roomName === roomName)
@@ -82,6 +82,14 @@ const isUserInRoom = (userId, roomName) => {
 	return room.users.includes(userId)
 }
 
+const updateRooms = () => {
+	io.emit("roomsUpdate", rooms)
+}
+
+const updateUsers = () => {
+	io.emit("usersUpdate", users)
+}
+
 io.on("connection", (socket) => {
 	//registrar novo usuário
 	socket.on("registerUser", (payload) => {
@@ -89,7 +97,7 @@ io.on("connection", (socket) => {
 
 		console.log("registrando novo usuário: ", payload.userName, socket.id)
 		users.push({ userName: payload.userName, userId: socket.id })
-		io.emit("usersUpdate", users)
+		updateUsers()
 	})
 
 	// inicializar salas e users
@@ -108,36 +116,49 @@ io.on("connection", (socket) => {
 			socket.join(roomData.roomName)
 			// io.broadcast.to(user.userId).emit("joinRoomRes", roomData.roomName)
 			socket.emit("joinRoomRes", roomData.roomName)
-			io.emit("roomsUpdate", rooms)
+			updateRooms()
 		}
-		cb(roomData)
+		cb({
+			roomName: roomData.roomName,
+			users: [...roomData.users, socketId],
+		})
 		console.log("new rooms (after create)", rooms)
 	})
 
 	// entrar na sala
-	socket.on("joinRoom", (socketId, roomData, cb) => {
-		//join room, adding user to room
-
+	socket.on("joinRoom", (socketId, room, cb) => {
 		console.log("join room chamado")
-		console.log(
-			"registrando o socket",
-			socketId,
-			"na sala",
-			roomData.roomName
-		)
-		const room = findRoom(roomData.roomName)
-		if (room) {
-			//push user to room
-			console.log("room antes do push", room)
-			room.users.push(socketId)
-			console.log("room depois do push", room)
-			socket.join(roomData.roomName)
-			// io.to(user.userId).emit("joinRoomRes", roomData.roomName) //=> não está funcionando
-			// io.broadcast.to(user.userId).emit("joinRoomRes", roomData.roomName)
-			io.emit("roomsUpdate", rooms)
-		}
+
+		console.log("registrando o socket", socketId, "na sala", room.roomName)
+		let opponentId = room.users.find((user) => user.userId !== socketId)
+		let opponent = findUser(opponentId)
+		let user = findUser(socketId)
+		// add user to room
+		let roomToJoin = findRoom(room.roomName)
+		roomToJoin.users.push(socketId)
+		//replace room in rooms array
+		let newRoom
+		rooms = rooms.map((room) => {
+			if (room.roomName === roomToJoin.roomName) {
+				newRoom = roomToJoin
+				return roomToJoin
+			}
+			return room
+		})
+		socket.join(room.roomName)
+		// io.to(user.userId).emit("joinRoomRes", roomData.roomName) //=> não está funcionando
+		// io.broadcast.to(user.userId).emit("joinRoomRes", roomData.roomName)
+		updateRooms()
+		cb(room, opponent)
+		//find user in room that is not the sender
+
+		socket.broadcast
+			.to(room.roomName)
+			// manda seu próprio user para o outro user da room
+			.emit("userJoined", user, newRoom)
+		console.log("newRoom mandado no userJoined", newRoom)
 		console.log("new rooms (after joinRoom)", rooms)
-		cb(room)
+		//
 	})
 
 	// console.log("join room chamado")
@@ -156,7 +177,9 @@ io.on("connection", (socket) => {
 			room.users = room.users.filter((user) => user !== socketId)
 			deleteRoomIfEmpty(roomName)
 			socket.leave(roomName)
-			io.emit("roomsUpdate", rooms)
+
+			updateRooms()
+			socket.broadcast.to(roomName).emit("userLeft")
 		}
 
 		// if (room) {
@@ -176,11 +199,6 @@ io.on("connection", (socket) => {
 	})
 	//
 	// fazer jogada (manda jogada para sala informada no data)
-	socket.on("move", (data) => {
-		io.broadcast.to(data.room).emit("moveRes", {
-			message: `usuário ${data.userName} moveu ${data.cell}`,
-		})
-	})
 	socket.on("cleanUp", (socketId) => {
 		// remove user from users and rooms
 		console.log("cleanUp chamado")
@@ -191,17 +209,20 @@ io.on("connection", (socket) => {
 		const room = rooms.find((room) => room.users.includes(socketId))
 		if (room) {
 			// delete room if no users
-			deleteRoomIfEmpty(room.roomName)
+
 			// remove user from room
 			if (findRoom(room.roomName)) {
 				room.users = room.users.filter((user) => user !== socketId)
 			}
 
 			// rooms.splice(roomIndex, 1)
+
 			socket.leave(room.roomName)
+			deleteRoomIfEmpty(room.roomName)
 		}
-		io.emit("roomsUpdate", rooms)
-		io.emit("usersUpdate", users)
+
+		updateRooms()
+		updateUsers()
 	})
 	socket.on("disconnect", () => {
 		users = users.filter((user) => user.userId !== socket.id)
@@ -211,11 +232,63 @@ io.on("connection", (socket) => {
 				room.users = room.users.filter((user) => user !== socket.id)
 				//se não tiver ninguém mais na sala, deleta
 				deleteRoomIfEmpty(room.roomName)
-				io.emit("roomsUpdate", rooms)
+				updateRooms()
 			}
 		})
-		io.emit("usersUpdate", users)
-		io.emit("roomsUpdate", rooms)
+		updateUsers()
+		updateRooms()
+	})
+
+	socket.on("move", (data, cb) => {
+		console.log("move chamado com data: ", data)
+		socket.broadcast.to(data.myGameRoom.roomName).emit("moveRes", {
+			room: data.myGameRoom.roomName,
+			gameBoard: data.gameBoard,
+			winner: data.winner,
+		})
+		cb(data.gameBoard, data.winner)
+	})
+	socket.on("gameOver", (socketId, roomName, cb) => {
+		console.log("gameOver chamado com room ", roomName)
+		// delete room
+		let room = findRoom(roomName)
+
+		if (room) {
+			rooms = rooms.filter((room) => room.roomName !== roomName)
+			socket.leave(roomName)
+		}
+		updateRooms()
+
+		// if (room) {
+		// 	room.users = []
+		// 	deleteRoomIfEmpty(roomName)
+		// 	socket.leave(roomName)
+		// }
+
+		// if (isUserInRoom(socketId, roomName)) {
+		// 	const room = findRoom(roomName)
+		// 	room.users = room.users.filter((user) => user !== socketId)
+		// 	deleteRoomIfEmpty(roomName)
+		// 	socket.leave(roomName)
+		// 	updateRooms()
+		// }
+		cb()
+
+		// if (room) {
+		// 	const roomIndex = rooms.indexOf(room)
+		// 	const userIndex = room.users.indexOf(socketId)
+		// 	if (userIndex > -1) {
+		// 		room.users.splice(userIndex, 1)
+		// 	}
+		// 	if (room.users.length === 0) {
+		// 		rooms.splice(roomIndex, 1)
+		// 	}
+		// 	socket.leave(roomName)
+		// }
+	})
+	socket.on("leaveGameRoom", (room) => {
+		socket.leave(room)
+		updateRooms()
 	})
 })
 
@@ -229,10 +302,10 @@ io.on("disconnect", (socket) => {
 			room.users = room.users.filter((user) => user !== socket.id)
 			//se não tiver ninguém mais na sala, deleta
 			deleteRoomIfEmpty(room.roomName)
-			io.emit("roomsUpdate", rooms)
+			updateRooms()
 		}
 	})
-	io.emit("roomsUpdate", rooms)
+	updateRooms()
 	io.emit("usersUpdate", rooms)
 })
 
