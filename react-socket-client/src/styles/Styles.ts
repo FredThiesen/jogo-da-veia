@@ -64,16 +64,24 @@ export const Header = styled.div`
 export const Content = styled.div`
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: space-around;
 	height: 90vh;
 	width: 100vw;
 	background: #f0f0f0;
+	@media (max-width: 800px) {
+		flex-direction: column;
+		position: relative;
+		justify-content: flex-start;
+	}
 `
 export const WelcomeLabel = styled.h1`
 	font-size: 2rem;
 	text-align: center;
-	color: #141c98;
-	margin: 15px;
+	color: #f0f0f0;
+	margin-inline: 10px;
+	@media (max-width: 800px) {
+		font-size: 1.3rem;
+	}
 `
 
 export const SideBar = styled.div`
@@ -82,17 +90,27 @@ export const SideBar = styled.div`
 	align-items: center;
 	justify-content: center;
 	height: 90vh;
-	width: 20vw;
+	width: 30vw;
 	padding-left: 15px;
 	padding-right: 15px;
 	padding: 15px;
+	margin-left: 15px;
+
+	@media (max-width: 800px) {
+		flex-direction: row;
+		position: relative;
+		width: 100vw;
+		justify-content: space-around;
+		height: 33vh;
+	}
 `
 
 export const InfoContainer = styled.div`
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-	justify-content: center;
+	align-items: flex-start;
+	justify-content: flex-start;
+	margin-inline: 10px;
 	height: 40%;
 	width: 100%;
 `
@@ -102,6 +120,9 @@ export const UsersContainer = styled.div`
 	align-items: center;
 	justify-content: start;
 	height: 60%;
+	min-height: 150px;
+	min-width: 235px;
+	max-width: 290px;
 	width: 100%;
 	overflow-y: auto;
 	border: 1px solid #ccc;
@@ -109,6 +130,9 @@ export const UsersContainer = styled.div`
 	box-shadow: 0px 0px 10px #ccc;
 	padding-left: 10px;
 	padding: 10px;
+	@media (max-width: 800px) {
+		min-width: 150px;
+	}
 `
 export const UserContainer = styled.div`
 	display: flex;
@@ -118,6 +142,8 @@ export const UserContainer = styled.div`
 	padding: 10px;
 	height: 10%;
 	width: 100%;
+	font-size: 16px;
+	font-weight: 500;
 `
 export const OnlineFlag = styled.span`
 	color: limegreen;
@@ -126,9 +152,14 @@ export const OnlineFlag = styled.span`
 	margin-top: 1px;
 `
 export const Label = styled.label`
-	font-size: 1.2em;
+	font-size: 1.2rem;
 	color: #141c98;
+	flex-wrap: nowrap;
 	align-self: flex-start;
+	margin-bottom: 5px;
+	@media (max-width: 800px) {
+		font-size: 1.1rem;
+	}
 `
 export const RoomListContainer = styled.div`
 	padding: 10px;
@@ -142,6 +173,12 @@ export const RoomListContainer = styled.div`
 	box-shadow: 0px 0px 10px #ccc;
 	height: 50%;
 	width: 100%;
+	min-height: 150px;
+	min-width: 235px;
+	max-width: 290px;
+	@media (max-width: 800px) {
+		min-width: 150px;
+	}
 `
 export const RoomContainer = styled.div`
 	display: flex;
@@ -153,8 +190,22 @@ export const RoomContainer = styled.div`
 	padding-left: 5px;
 	padding-right: 5px;
 	height: 10%;
+	min-height: 40px;
 	width: 100%;
 	border-bottom: 1px solid #141c98;
+	font-size: 16px;
+	font-weight: 500;
+	@media (max-width: 560px) {
+		font-size: 12.5px;
+		font-weight: 400;
+	}
+`
+export const Wrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 2px;
 `
 export const RoomUsersLabel = styled.h1`
 	font-size: 0.8em;
@@ -183,19 +234,29 @@ export const MiddleBar = styled.div`
 	align-items: center;
 	justify-content: space-evenly;
 	height: 100%;
-	width: 60vw;
+
+	/* width: 50vw; */
+	padding: 20px;
 `
 export const GameLabel = styled.h1`
 	font-size: 1.5em;
 	text-align: center;
 	color: #141c98;
 	margin: 15px;
+	@media (max-width: 800px) {
+		font-size: 1.1rem;
+		margin: 10px;
+	}
 `
 export const TurnLabel = styled.h1`
-	font-size: 1.5em;
+	font-size: 1.3em;
 	text-align: center;
 	color: #141c98;
 	margin: 15px;
+	@media (max-width: 800px) {
+		font-size: 1.1rem;
+		margin: 10px;
+	}
 `
 export const CreateRoomButton = styled.button`
 	border: 1px solid #ccc;
@@ -245,4 +306,51 @@ export const Row = styled.div`
 	align-items: center;
 	justify-content: center;
 	width: 100%;
+`
+export const HeaderSideSection = styled.div`
+	display: flex;
+	width: 25%;
+	height: 100%;
+	align-items: center;
+	justify-content: space-around;
+`
+export const HeaderMiddleSection = styled.div`
+	display: flex;
+	width: 50%;
+	height: 100%;
+	align-items: center;
+	justify-content: space-around;
+`
+export const RightBar = styled.div`
+	width: 30vw;
+	height: 0px;
+	@media (max-width: 800px) {
+		width: 0px;
+	}
+	@media (max-width: 1250px) {
+		width: 10vw;
+	}
+`
+
+const rotate360 = keyframes`
+from {
+  transform: rotate(0deg);
+}
+to {
+  transform: rotate(360deg);
+}
+`
+
+export const Spinner = styled.div`
+	animation: ${rotate360} 1s linear infinite;
+	transform: translateZ(0);
+
+	border-top: 2px solid grey;
+	border-right: 2px solid grey;
+	border-bottom: 2px solid grey;
+	border-left: 4px solid #0761ff;
+	background: transparent;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
 `

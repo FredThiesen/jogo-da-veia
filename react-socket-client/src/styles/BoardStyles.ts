@@ -8,8 +8,13 @@ export const GameBoard = styled.div`
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	width: 400px;
-	height: 400px;
+	width: 40vw;
+	height: 40vw;
+	max-width: 400px;
+	max-height: 400px;
+	min-height: 280px;
+	min-width: 280px;
+
 	background-color: transparent;
 `
 export const BoardRow = styled.div`

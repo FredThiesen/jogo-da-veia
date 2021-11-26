@@ -34,13 +34,26 @@ export default function Login() {
 		if (s) return s[0].toUpperCase() + s.slice(1)
 	}
 
+	// function that cuts the name if it is too long
+	const cutName = (s: string | undefined) => {
+		if (s) {
+			if (s.length > 15) {
+				return s.slice(0, 15) + "..."
+			} else {
+				return s
+			}
+		}
+	}
+
 	const handleLogin = () => {
 		if (username.length > 0 && password.length > 0) {
 			//firebase login
 			firebaseLogin(username, password)
 				.then((user) => {
 					dispatch(
-						setUserInfo(capitalize(user.user.email!.split("@")[0]))
+						setUserInfo(
+							cutName(capitalize(user.user.email!.split("@")[0]))
+						)
 					) // salva user no redux
 					console.log("logado com sucesso!")
 				})
@@ -58,7 +71,12 @@ export default function Login() {
 	}
 	const handleSignUp = () => {
 		if (username.length > 0 && password.length > 0) {
+			// if (username.length > 30) {
+			// 	notify("O nome de usuário não pode ter mais que 15 caracteres")
+			// 	return
+			// }
 			//firebase signUp
+			// else
 			firebaseSignUp(username, password)
 				.then((user) => {
 					notify("Cadastrado com sucesso! Faça seu login.")

@@ -127,6 +127,10 @@ io.on("connection", (socket) => {
 
 	// entrar na sala
 	socket.on("joinRoom", (socketId, room, cb) => {
+		if (!findRoom(room.roomName)) {
+			return
+		}
+
 		console.log("join room chamado")
 
 		console.log("registrando o socket", socketId, "na sala", room.roomName)
@@ -169,6 +173,10 @@ io.on("connection", (socket) => {
 
 	// sair da sala
 	socket.on("leaveRoom", (socketId, roomName) => {
+		if (!findRoom(roomName)) {
+			socket.leave(roomName)
+			return
+		}
 		console.log("leave room chamado")
 		// remove user from room, delete room if no users
 

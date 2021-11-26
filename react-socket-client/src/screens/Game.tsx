@@ -9,17 +9,21 @@ import {
 	CreateRoomButton,
 	GameLabel,
 	Header,
+	HeaderMiddleSection,
+	HeaderSideSection,
 	InfoContainer,
 	JoinRoomButton,
 	Label,
 	LoadingDiv,
 	MiddleBar,
 	OnlineFlag,
+	RightBar,
 	RoomContainer,
 	RoomListContainer,
 	RoomUsersLabel,
 	Row,
 	SideBar,
+	Spinner,
 	TurnLabel,
 	UserContainer,
 	UsersContainer,
@@ -58,6 +62,7 @@ const Game = () => {
 	const [myGameRoom, setMyGameRoom] = useState<string>("")
 	const [socketId, setSocketId] = useState("")
 	const [opponent, setOpponent] = useState<User | null>(null)
+	const [isRoomButtonLoading, setisRoomButtonLoading] = useState(false)
 	const dispatch = useDispatch()
 	const socket = React.useContext(SocketContext)
 	const notify = (message: string) => toast(message)
@@ -120,6 +125,7 @@ const Game = () => {
 		return roomList.find((room) => room.roomName === roomName)
 	}
 	const handleCreateRoom = () => {
+		handleRoomButtonClick()
 		if (!findRoom(`Sala de ${user}`)) {
 			socket.emit(
 				"createRoom",
@@ -177,11 +183,19 @@ const Game = () => {
 		socket.disconnect()
 	}
 	const handleLeaveRoom = () => {
+		handleRoomButtonClick()
 		dispatch(setGameRoom({ roomName: "", users: [] }))
 		dispatch(setGameBoard([0, 0, 0, 0, 0, 0, 0, 0, 0]))
 		setOpponent(null)
 		setIsYourTurn(false)
 		socket.emit("leaveRoom", socketId, gameRoom?.roomName)
+	}
+
+	const handleRoomButtonClick = () => {
+		setisRoomButtonLoading(true)
+		setTimeout(() => {
+			setisRoomButtonLoading(false)
+		}, 1000)
 	}
 
 	// useEffect(() => {
@@ -203,9 +217,12 @@ const Game = () => {
 	// }, [roomList])
 
 	useEffect(() => {
-		console.log("setando socketId com ", socket.id)
 		socket.id && setSocketId(socket.id)
 	}, [socket.id])
+
+	useEffect(() => {
+		socketId && notify(`conectado com o id ${socket.id}`)
+	}, [socketId])
 
 	useEffect(() => {
 		console.log("gameroom no UseEffect", gameRoom)
@@ -233,7 +250,7 @@ const Game = () => {
 		socket.connect()
 		console.log("1 render")
 		socket.on("connect", () => {
-			notify(`conectado com id: ${socket.id}`)
+			// notify(`conectado com id: ${socket.id}`)
 		})
 
 		socket.emit("registerUser", { userName: user, userId: socket.id })
@@ -300,14 +317,25 @@ const Game = () => {
 	return (
 		<Body>
 			<Toaster />
-			<Header />
+			<Header>
+				<HeaderSideSection></HeaderSideSection>
+
+				<HeaderMiddleSection>
+					<WelcomeLabel>
+						Bem vindo, {user}!{/* tic tac toe board */}
+					</WelcomeLabel>
+				</HeaderMiddleSection>
+				<HeaderSideSection>
+					<Button onClick={handleLogout} style={{ maxWidth: 190 }}>
+						{" "}
+						Sair{" "}
+					</Button>
+				</HeaderSideSection>
+			</Header>
 			<Content>
 				<SideBar>
 					<InfoContainer>
-						<WelcomeLabel>
-							Bem vindo, {user}!{/* tic tac toe board */}
-						</WelcomeLabel>
-						<Label>Usuários conectados:</Label>
+						<Label>Jogadores:</Label>
 						<UsersContainer>
 							{userList.map((user: User) => (
 								<UserContainer key={uuid()}>
@@ -317,38 +345,41 @@ const Game = () => {
 							))}
 						</UsersContainer>
 					</InfoContainer>
-					<Label>Salas:</Label>
-					<RoomListContainer>
-						{roomList.length > 0 ? (
-							roomList.map((room) => (
-								<RoomContainer
-									key={uuid()}
-									// key={Math.random() + Math.random()}
-								>
-									{room.roomName}
-									<RoomUsersLabel>
-										{room.users.length} / 2
-									</RoomUsersLabel>
-
-									{room.users.length < 2 ? (
-										<JoinRoomButton
-											onClick={() => handleJoinRoom(room)}
-										>
-											<RoomUsersLabel>
-												Entrar
-											</RoomUsersLabel>
-										</JoinRoomButton>
-									) : (
+					<InfoContainer>
+						<Label>Salas:</Label>
+						<RoomListContainer>
+							{roomList.length > 0 ? (
+								roomList.map((room) => (
+									<RoomContainer
+										key={uuid()}
+										// key={Math.random() + Math.random()}
+									>
+										{room.roomName}
 										<RoomUsersLabel>
-											Sala cheia!
+											{room.users.length} / 2
 										</RoomUsersLabel>
-									)}
-								</RoomContainer>
-							))
-						) : (
-							<p>Nenhuma sala ainda!</p>
-						)}
-					</RoomListContainer>
+										{socketId && room.users.length < 2 ? (
+											<JoinRoomButton
+												onClick={() =>
+													handleJoinRoom(room)
+												}
+											>
+												<RoomUsersLabel>
+													Entrar
+												</RoomUsersLabel>
+											</JoinRoomButton>
+										) : (
+											<RoomUsersLabel>
+												Sala cheia!
+											</RoomUsersLabel>
+										)}
+									</RoomContainer>
+								))
+							) : (
+								<p>Nenhuma sala ainda!</p>
+							)}
+						</RoomListContainer>
+					</InfoContainer>
 				</SideBar>
 				<MiddleBar>
 					{opponent && (
@@ -452,9 +483,6 @@ const Game = () => {
 							<LoadingDiv />
 							<LoadingDiv />
 							<LoadingDiv />
-							<LoadingDiv />
-
-							<LoadingDiv />
 						</Row>
 					)}
 					{!opponent && socket.id && (
@@ -464,20 +492,23 @@ const Game = () => {
 							</GameLabel>
 						</>
 					)}
-					{gameRoom?.roomName && (
-						<CreateRoomButton onClick={handleLeaveRoom}>
-							Sair da {gameRoom.roomName}
-						</CreateRoomButton>
-					)}
-					{!gameRoom?.roomName && socket.id && (
-						<CreateRoomButton onClick={handleCreateRoom}>
-							Criar nova sala
-						</CreateRoomButton>
-					)}
+					{gameRoom?.roomName &&
+						socket.id &&
+						!isRoomButtonLoading && (
+							<CreateRoomButton onClick={handleLeaveRoom}>
+								Sair da {gameRoom.roomName}
+							</CreateRoomButton>
+						)}
+					{!gameRoom?.roomName &&
+						socket.id &&
+						!isRoomButtonLoading && (
+							<CreateRoomButton onClick={handleCreateRoom}>
+								Criar nova sala
+							</CreateRoomButton>
+						)}
+					{isRoomButtonLoading && <Spinner />}
 				</MiddleBar>
-				<SideBar>
-					<Button onClick={handleLogout}> Sair </Button>
-				</SideBar>
+				<RightBar />
 			</Content>
 		</Body>
 	)
