@@ -171,13 +171,15 @@ export const RoomListContainer = styled.div`
 	border: 1px solid #ccc;
 	border-radius: 10px;
 	box-shadow: 0px 0px 10px #ccc;
-	height: 50%;
+
 	width: 100%;
 	min-height: 150px;
+	height: 300px;
 	min-width: 235px;
 	max-width: 290px;
 	@media (max-width: 800px) {
 		min-width: 150px;
+		height: 50%;
 	}
 `
 export const RoomContainer = styled.div`

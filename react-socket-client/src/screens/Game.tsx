@@ -39,6 +39,7 @@ import {
 } from "../redux/actions/gameActions"
 import { Game as GameType } from "../interfaces/gameType"
 import { checkWinner } from "../functions/checkWinner"
+import { checkDraw } from "../functions/checkDraw"
 interface User {
 	userName: string
 	userId: string
@@ -75,6 +76,7 @@ const Game = () => {
 			newBoard[cellIndex] = player === "X" ? 1 : -1
 			//checa se o movimento ganhou o jogo
 			const winner = checkWinner(newBoard)
+			const draw = checkDraw(newBoard)
 
 			socket.emit(
 				"move",
@@ -82,17 +84,26 @@ const Game = () => {
 					myGameRoom: gameRoom,
 					gameBoard: newBoard,
 					winner: winner,
+					draw: draw,
 				},
 				cellClickCallback
 			)
 			setIsYourTurn(false)
 		}
 	}
-	const cellClickCallback = (gameBoard: number[], winner: boolean) => {
+	const cellClickCallback = (
+		gameBoard: number[],
+		winner: boolean,
+		draw: boolean
+	) => {
 		dispatch(setGameBoard(gameBoard))
 		setIsYourTurn(false)
 		if (winner) {
 			notify("Você venceu!")
+			cleanGameAndLeaveRoom()
+		}
+		if (draw) {
+			notify("Empate!")
 			cleanGameAndLeaveRoom()
 		}
 	}
@@ -294,6 +305,14 @@ const Game = () => {
 			if (moveData.winner) {
 				console.log("winner: ", moveData.winner)
 				notify("Você perdeu...")
+				dispatch(deleteGame())
+				setMyGameRoom("")
+				dispatch(setGameRoom({ roomName: "", users: [] }))
+				setOpponent(null)
+				setIsYourTurn(false)
+				socket.emit("leaveGameRoom", moveData.room)
+			} else if (moveData.draw) {
+				notify("Empate!")
 				dispatch(deleteGame())
 				setMyGameRoom("")
 				dispatch(setGameRoom({ roomName: "", users: [] }))

@@ -253,8 +253,9 @@ io.on("connection", (socket) => {
 			room: data.myGameRoom.roomName,
 			gameBoard: data.gameBoard,
 			winner: data.winner,
+			draw: data.draw,
 		})
-		cb(data.gameBoard, data.winner)
+		cb(data.gameBoard, data.winner, data.draw)
 	})
 	socket.on("gameOver", (socketId, roomName, cb) => {
 		console.log("gameOver chamado com room ", roomName)
