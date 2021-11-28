@@ -130,6 +130,10 @@ io.on("connection", (socket) => {
 		if (!findRoom(room.roomName)) {
 			return
 		}
+		let roomToJoin = findRoom(room.roomName)
+		if (roomToJoin.users.length >= 2) {
+			return
+		}
 
 		console.log("join room chamado")
 
@@ -137,10 +141,9 @@ io.on("connection", (socket) => {
 		let opponentId = room.users.find((user) => user.userId !== socketId)
 		let opponent = findUser(opponentId)
 		let user = findUser(socketId)
-		// add user to room
-		let roomToJoin = findRoom(room.roomName)
+
 		roomToJoin.users.push(socketId)
-		//replace room in rooms array
+
 		let newRoom
 		rooms = rooms.map((room) => {
 			if (room.roomName === roomToJoin.roomName) {
@@ -154,7 +157,6 @@ io.on("connection", (socket) => {
 		// io.broadcast.to(user.userId).emit("joinRoomRes", roomData.roomName)
 		updateRooms()
 		cb(room, opponent)
-		//find user in room that is not the sender
 
 		socket.broadcast
 			.to(room.roomName)
