@@ -1,6 +1,6 @@
 npm run start
 
-### eventos emitidos pelo server:
+### eventos emitidos pelo server (desatualizado):
 
 -   inicializa array de salas e array de users
     getInfoOnConnectRes
