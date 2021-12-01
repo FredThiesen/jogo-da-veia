@@ -1,3 +1,4 @@
+## Rodar o server:
 ```npm run start```
 
 ### eventos emitidos pelo server (desatualizado):
