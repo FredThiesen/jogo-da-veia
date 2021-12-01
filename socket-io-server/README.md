@@ -1,51 +1,45 @@
 ## Rodar o server:
-```npm run start```
 
-### eventos emitidos pelo server (desatualizado):
+`npm run start`
 
--   ```getInfoOnConnectRes``` inicializa array de salas e array de users
-    
+### eventos emitidos pelo server:
 
--  ```usersUpdate``` atualiza array de users
-    
+-   `getInfoOnConnectRes` inicializa array de salas e array de users
 
--   ``` roomsUpdate``` sala criada
-   
+-   `usersUpdate` atualiza array de users
 
--  ``` joinRoomRes``` entrar na sala
-   
+-   ` roomsUpdate` sala criada
 
--   ```leaveRoomRes``` sair da sala
-   
+-   ` joinRoomRes` entrar na sala
 
--   ```moveRes``` jogada
-   
+-   `userJoined` usuário entrou na sala
 
-- ``` disconnect```  desconectar
-   
+-   `leaveRoomRes` sair da sala
+
+-   `moveRes` emite a jogada do oponente
+
+-   `userLeft` sinaliza que o oponente saiu da sala
+
+-   ` disconnect` desconectar
 
 ### eventos recebidos pelo server:
 
+-   `registerUser` registrar novo usuário
 
+-   `getInfoOnConnect` inicializa array de salas e array of users
 
--   ```getInfoOnConnect``` inicializa array de salas e array of users
+-   `createRoom` criar sala
 
+-   `joinRoom` entrar na sala
 
+-   ` leaveRoom` sair da sala
 
--   ```registerUser``` registrar novo usuário
+-   ` cleanup` remove usuário de todos os arrays e o desconecta
 
+-   `move` fazer jogada
 
+-   `gameOver` sinaliza que o jogo acabou
 
--   ```createRoom``` criar sala
+-   `leaveGameRoom` retira o usuário da sala do jogo
 
-
-
--   ```joinRoom``` entrar na sala
-
-
-
--  ``` leaveRoom``` sair da sala
-
-
-
--   ```move``` fazer jogada
+-   `disconnect` desconectar
