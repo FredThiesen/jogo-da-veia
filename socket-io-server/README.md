@@ -1,4 +1,4 @@
-npm run start
+```npm run start```
 
 ### eventos emitidos pelo server (desatualizado):
 
