@@ -2,49 +2,49 @@
 
 ### eventos emitidos pelo server (desatualizado):
 
--   inicializa array de salas e array de users
-    getInfoOnConnectRes
+-   ```getInfoOnConnectRes``` inicializa array de salas e array de users
+    
 
--   atualiza array de users
-    usersUpdate
+-  ```usersUpdate``` atualiza array de users
+    
 
--   sala criada
-    roomsUpdate
+-   ``` roomsUpdate``` sala criada
+   
 
--   entrar na sala
-    joinRoomRes
+-  ``` joinRoomRes``` entrar na sala
+   
 
--   sair da sala
-    leaveRoomRes
+-   ```leaveRoomRes``` sair da sala
+   
 
--   jogada
-    moveRes
+-   ```moveRes``` jogada
+   
 
--   desconectar
-    disconnect
+- ``` disconnect```  desconectar
+   
 
 ### eventos recebidos pelo server:
 
-inicializa array de salas e array of users
 
--   getInfoOnConnect
 
-registrar novo usuário
+-   ```getInfoOnConnect``` inicializa array de salas e array of users
 
--   registerUser
 
-criar sala
 
--   createRoom
+-   ```registerUser``` registrar novo usuário
 
-entrar na sala
 
--   joinRoom
 
-sair da sala
+-   ```createRoom``` criar sala
 
--   leaveRoom
 
-fazer jogada
 
--   move
+-   ```joinRoom``` entrar na sala
+
+
+
+-  ``` leaveRoom``` sair da sala
+
+
+
+-   ```move``` fazer jogada
