@@ -277,8 +277,7 @@ const Game = () => {
 		)
 		socket.on("userJoined", (opponent, room) => {
 			console.log("userJoined: ", opponent)
-			console.log("room no userJoined", room)
-			notify("Usuário entrou na sua sala")
+			notify(`${opponent.userName} entrou na sua sala`)
 			dispatch(setGameRoom(room))
 			setOpponent(opponent)
 			setPlayer("O")
