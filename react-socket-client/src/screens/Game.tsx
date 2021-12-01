@@ -101,8 +101,7 @@ const Game = () => {
 		if (winner) {
 			notify("Você venceu!")
 			cleanGameAndLeaveRoom()
-		}
-		if (draw) {
+		} else if (draw) {
 			notify("Empate!")
 			cleanGameAndLeaveRoom()
 		}
